@@ -542,7 +542,7 @@ function esp:update()
             end
 
             -- weapon
-           drawing.weapon.Visible = esp[ flag .. 'weapon'][1]
+drawing.weapon.Visible = esp[ flag .. 'weapon'][1]
 drawing.weapon_outline.Visible = esp.outlines and drawing.weapon.Visible
 
 if drawing.weapon.Visible then
@@ -553,7 +553,8 @@ if drawing.weapon.Visible then
             break
         end
     end
-    drawing.weapon.Text = weaponName or (character.EquippedTool.Value and character.EquippedTool.Value:lower()) or nil
+
+    drawing.weapon.Text = weaponName or nil
     drawing.weapon.Font = Drawing.Fonts[esp.font]
     drawing.weapon.Size = esp.textsize
     drawing.weapon.Color = esp[ flag .. 'weapon'][2]
@@ -566,6 +567,7 @@ if drawing.weapon.Visible then
     drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
     drawing.weapon_outline.Transparency = transparency
 end
+
 
         else
             esp:disable(player)

@@ -1,10 +1,15 @@
 ---@vars
+local fonts = loadstring(game:HttpGet('https://raw.githubusercontent.com/Nexus-Scripts/nexusscripts-roblox-ui-custom-font-loader/refs/heads/main/custom_ui_fonts.lua'))()
+
+local customFonts = fonts.InitializeDefaultFonts()
+
+
 local runService = game:GetService('RunService')
 local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.1 - Optimizedz")
+warn("v0.1 - Optimizedx")
 local esp = {
     -- settings
     enabled = false,
@@ -458,7 +463,7 @@ function esp:update()
                 drawing.arrow_name_outline.Visible = esp.outlines and drawing.arrow_name.Visible
                 if drawing.arrow_name.Visible then
                     drawing.arrow_name.Text = esp[flag .. 'distance'] and '['..distance..'] '.. playerName or playerName
-                    drawing.arrow_name.Font = Drawing.Fonts[esp.font]
+                    drawing.arrow_name.Font = fonts.GetFont("ProggyClean")
                     drawing.arrow_name.Size = esp.textsize
                     drawing.arrow_name.Color = esp[flag .. 'names'][2]
                     drawing.arrow_name.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.arrow_name.TextBounds.X / 2), smallestY - drawing.arrow_name.TextBounds.Y - 2))
@@ -746,7 +751,7 @@ function esp:update()
         drawing.distance_outline.Visible = esp.outlines and drawing.distance.Visible
         if drawing.distance.Visible then
             drawing.distance.Text = '['..distance..']'
-            drawing.distance.Font = Drawing.Fonts[esp.font]
+            drawing.distance.Font = fonts.GetFont("ProggyClean")
             drawing.distance.Size = esp.textsize
             drawing.distance.Color = esp[flag .. 'names'][2]
             drawing.distance.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.distance.TextBounds.X / 2), smallestY - drawing.distance.TextBounds.Y - 2))
@@ -763,7 +768,7 @@ function esp:update()
         drawing.name_outline.Visible = esp.outlines and drawing.name.Visible
         if drawing.name.Visible then
             drawing.name.Text = esp[flag .. 'distance'] and '['..distance..'] '..playerName or playerName
-            drawing.name.Font = Drawing.Fonts[esp.font]
+            drawing.name.Font = fonts.GetFont("ProggyClean")
             drawing.name.Size = esp.textsize
             drawing.name.Color = esp[flag .. 'names'][2]
             drawing.name.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.name.TextBounds.X / 2), smallestY - drawing.name.TextBounds.Y - 2))
@@ -779,7 +784,7 @@ function esp:update()
         drawing.health.Visible = health ~= 100 and health ~= 0 and esp[flag .. 'health']
         if drawing.health.Visible then
             drawing.health.Text = tostring(health)
-            drawing.health.Font = Drawing.Fonts[esp.font]
+            drawing.health.Font = fonts.GetFont("ProggyClean")
             drawing.health.Size = esp.textsize
             drawing.health.Outline = esp.outlines
             drawing.health.Color = esp[flag .. 'healthbar'][3]:Lerp(esp[flag .. 'healthbar'][2], health / 100)
@@ -792,7 +797,7 @@ function esp:update()
         drawing.healthtext_outline.Visible = esp.outlines and drawing.healthtext.Visible
         if drawing.healthtext.Visible then
             drawing.healthtext.Text = tostring(health)
-            drawing.healthtext.Font = Drawing.Fonts[esp.font]
+            drawing.healthtext.Font = fonts.GetFont("ProggyClean")
             drawing.healthtext.Size = esp.textsize
             drawing.healthtext.Color = NEWCOLOR3(1, 1, 1)
             drawing.healthtext.Position = esp:floorvector(NEWVEC2(biggestX + 4, smallestY + (biggestY - smallestY) / 3 - drawing.healthtext.TextBounds.Y / 2))
@@ -819,7 +824,7 @@ function esp:update()
 
 
             drawing.weapon.Text = weaponName
-            drawing.weapon.Font = Drawing.Fonts[esp.font]
+            drawing.weapon.Font = fonts.GetFont("ProggyClean")
             drawing.weapon.Size = esp.textsize
             drawing.weapon.Color = esp[flag .. 'weapon'][2]
             drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))

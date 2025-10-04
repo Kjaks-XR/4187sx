@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.1 - Optimized")
+warn("v0.1 - Optimized - ")
 local esp = {
     -- settings
     enabled = false,
@@ -807,7 +807,7 @@ function esp:update()
         if esp[flag .. 'weapon'][1] then
             local weaponName = "none"
             for _, obj in pairs(character:GetDescendants()) do
-                if obj.Name:lower() == "bolt" then
+                if obj.Name:lower() == "attachments" then
                     local parent = obj.Parent
                     if parent then
                         if parent.Name:lower() == "itemroot" then
@@ -841,14 +841,41 @@ function esp:update()
 end
 
 for i, plr in next, players:GetPlayers() do
-    esp:add(plr)
+    if plr ~= localPlayer then
+        task.spawn(function()
+            plr.CharacterAdded:Wait()
+            esp:add(plr)
+        end)
+    end
 end
+
 esp:connect(players.PlayerAdded, function(plr)
+    plr.CharacterAdded:Wait() -- Karakterin yüklenmesini bekle
+    task.wait(0.5) -- Ekstra güvenlik için küçük bir gecikme
     esp:add(plr)
 end)
+
+
+function esp:remove(plr)
+    local objects = self.players[plr.Name]
+    if objects then
+        for i, v in next, objects do
+            if type(v) == 'table' and v.Remove then
+                v:Remove()
+            elseif v.Destroy then
+                v:Destroy()
+            end
+        end
+        self.players[plr.Name] = nil
+    end
+end
+
 esp:connect(players.PlayerRemoving, function(plr)
     esp:remove(plr)
+    esp.players[plr.Name] = nil -- Ekstra temizlik
 end)
+
+
 
 esp:bindtorenderstep('esp', 999, esp.update)
 

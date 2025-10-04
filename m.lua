@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.2 - Optimized")
+warn("v0.1 - Optimized")
 local esp = {
     -- settings
     enabled = false,
@@ -538,6 +538,38 @@ function esp:update()
             drawing.weapon_outline.Visible = false
             continue
         end
+        
+        -- Double check viewport bounds to prevent stuck elements
+        if screenPos.X < -100 or screenPos.X > camera.ViewportSize.X + 100 or 
+           screenPos.Y < -100 or screenPos.Y > camera.ViewportSize.Y + 100 then
+            drawing.box.Visible = false
+            drawing.box_fill.Visible = false
+            drawing.box_outline.Visible = false
+            drawing.box_corner_tl1.Visible = false
+            drawing.box_corner_tl2.Visible = false
+            drawing.box_corner_tr1.Visible = false
+            drawing.box_corner_tr2.Visible = false
+            drawing.box_corner_bl1.Visible = false
+            drawing.box_corner_bl2.Visible = false
+            drawing.box_corner_br1.Visible = false
+            drawing.box_corner_br2.Visible = false
+            drawing.bar.Visible = false
+            drawing.bar_inline.Visible = false
+            drawing.bar_outline.Visible = false
+            drawing.kevlarbar.Visible = false
+            drawing.kevlarbar_inline.Visible = false
+            drawing.kevlarbar_outline.Visible = false
+            drawing.distance.Visible = false
+            drawing.distance_outline.Visible = false
+            drawing.name.Visible = false
+            drawing.name_outline.Visible = false
+            drawing.health.Visible = false
+            drawing.healthtext.Visible = false
+            drawing.healthtext_outline.Visible = false
+            drawing.weapon.Visible = false
+            drawing.weapon_outline.Visible = false
+            continue
+        end
 
         -- Calculate box positions (only when on screen)
         local smallestX, biggestX = math.huge, -math.huge
@@ -776,7 +808,16 @@ function esp:update()
             local weaponName = "none"
             for _, obj in pairs(character:GetDescendants()) do
                 if obj.Name:lower() == "bolt" then
-                    weaponName = obj.Parent.Name:lower()
+                    local parent = obj.Parent
+                    if parent then
+                        if parent.Name:lower() == "itemroot" then
+                            if parent.Parent then
+                                weaponName = parent.Parent.Name:lower()
+                            end
+                        else
+                            weaponName = parent.Name:lower()
+                        end
+                    end
                     break
                 end
             end

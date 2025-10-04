@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.4")
+warn("v0.5 B")
 local esp = {
     -- settings
     enabled = false,
@@ -151,8 +151,19 @@ end
 function esp.checkalive(plr)
     if not plr then plr = localPlayer end
     local pass = false
-    if (plr.Character and plr.Character:FindFirstChild('Humanoid') and plr.Character:FindFirstChild('Head') and plr.Character:FindFirstChild('LeftUpperArm') and plr.Character.Humanoid.Health > 0 and plr.Character.LeftUpperArm.Transparency == 0) then
-        pass = true
+    local character = plr.Character
+    if character then
+        local humanoid = character:FindFirstChild('Humanoid')
+        local head = character:FindFirstChild('Head')
+        local hrp = character:FindFirstChild('HumanoidRootPart')
+        
+        if humanoid and head and hrp and humanoid.Health > 0 then
+            -- More flexible check - just verify key parts exist
+            local leftArm = character:FindFirstChild('LeftUpperArm') or character:FindFirstChild('Left Arm')
+            if leftArm then
+                pass = true
+            end
+        end
     end
     return pass
 end
@@ -319,6 +330,13 @@ function esp:update()
     for plr, drawing in next, esp.players do
         local player = players:FindFirstChild(plr)
         if not player then esp.players[plr] = nil continue end
+        
+        -- Add player if they weren't added before
+        if not drawing then
+            esp:add(player)
+            continue
+        end
+        
         if esp.enabled and esp.checkalive(player) then
             local character = esp.getcharacter(player)
             local playerName = plr
@@ -428,11 +446,12 @@ function esp:update()
                 drawing.chams.ins.OutlineColor = esp[ flag .. 'chams'][3]
                 
                 if esp.chamsfade then
-                    drawing.chams.fadeTime = drawing.chams.fadeTime + (runService.RenderStepped:Wait() * esp.chamsfadespeed)
+                    drawing.chams.fadeTime = (drawing.chams.fadeTime or 0) + (1 / 60 * esp.chamsfadespeed)
                     local fadeFactor = (SIN(drawing.chams.fadeTime) + 1) / 2
                     drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4] + (fadeFactor * 0.3)
                     drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5] + (fadeFactor * 0.2)
                 else
+                    drawing.chams.fadeTime = 0
                     drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4]
                     drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5]
                 end
@@ -651,8 +670,8 @@ function esp:update()
                 drawing.healthtext.Text = tostring(health)
                 drawing.healthtext.Font = Drawing.Fonts[esp.font]
                 drawing.healthtext.Size = esp.textsize
-                drawing.healthtext.Color = esp[ flag .. 'healthbar'][3]:Lerp(esp[ flag .. 'healthbar'][2], health / 100)
-                drawing.healthtext.Position = esp:floorvector(NEWVEC2(biggestX + 4, smallestY + (biggestY - smallestY) / 2 - drawing.healthtext.TextBounds.Y / 2))
+                drawing.healthtext.Color = NEWCOLOR3(1, 1, 1)
+                drawing.healthtext.Position = esp:floorvector(NEWVEC2(biggestX + 4, smallestY + (biggestY - smallestY) / 3 - drawing.healthtext.TextBounds.Y / 2))
                 drawing.healthtext.Transparency = transparency
                 drawing.healthtext_outline.Text = drawing.healthtext.Text
                 drawing.healthtext_outline.Font = drawing.healthtext.Font

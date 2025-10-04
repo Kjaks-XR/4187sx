@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.3")
+warn("v0.4")
 local esp = {
     -- settings
     enabled = false,
@@ -13,6 +13,8 @@ local esp = {
     outlines = true,
     limitdistance = false,
     shortnames = false,
+    cornerbox = false,
+    chamsfade = false,
 
     maxchar = 4,
     maxdistance = 1200,
@@ -20,6 +22,7 @@ local esp = {
     arrowradius = 500,
     arrowsize = 20,
     arrowinfo = false,
+    chamsfadespeed = 2,
 
     -- instances
     --\ @teammates
@@ -225,6 +228,15 @@ function esp:add(plr)
         box_fill = esp:draw('Square', { Filled = true, Thickness = 1 }),
         box_outline = esp:draw('Square', { Filled = false, Thickness = 1 }),
         box = esp:draw('Square', { Filled = false, Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        -- corner box lines
+        box_corner_tl1 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_tl2 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_tr1 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_tr2 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_bl1 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_bl2 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_br1 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
+        box_corner_br2 = esp:draw('Line', { Thickness = 1, Color = NEWCOLOR3(1,1,1) }),
         arrow_name_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
         arrow_name = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
         arrow_bar_outline = esp:draw('Square', { Filled = true, Thickness = 1 }),
@@ -248,9 +260,11 @@ function esp:add(plr)
         distance = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
         weapon_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
         weapon = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 }),
-        health = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13, Center = true })
+        health = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13, Center = true }),
+        healthtext_outline = esp:draw('Text', { Color = NEWCOLOR3(), Font = 2, Size = 13 }),
+        healthtext = esp:draw('Text', { Color = NEWCOLOR3(1,1,1), Font = 2, Size = 13 })
     }
-    local chams = { ins = esp:create('Highlight', { Name = plr.Name }) }
+    local chams = { ins = esp:create('Highlight', { Name = plr.Name }), fadeTime = 0 }
     function chams:Remove() chams.ins:Destroy() end
     objs['chams'] = chams
     self.players[plr.Name] = objs
@@ -261,7 +275,7 @@ function esp:disable(plr)
         for i, v in next, objects do
             if i == 'chams' then
                 v.ins.Enabled = false
-            else
+            elseif type(v) == 'table' and v.Visible ~= nil then
                 v.Visible = false
             end
         end;
@@ -271,7 +285,9 @@ function esp:remove(plr)
     local objects = self.players[plr.Name];
     if objects then
         for i, v in next, objects do
-            v:Remove()
+            if type(v) == 'table' and v.Remove then
+                v:Remove()
+            end
         end;
     end;
     self.players[plr.Name] = nil;
@@ -305,7 +321,7 @@ function esp:update()
         if not player then esp.players[plr] = nil continue end
         if esp.enabled and esp.checkalive(player) then
             local character = esp.getcharacter(player)
-            local playerName = LEN(plr) > esp.maxchar and esp.shortnames and SUB(plr, 0, esp.maxchar) .. '..' or plr
+            local playerName = plr
             local pass = esp:check(player)
             local distance = tostring(FLOOR((character.PrimaryPart.CFrame.p - camera.CFrame.p).Magnitude  / 3))  .. 'm'
             local _, onScreen = camera:WorldToViewportPoint(character['HumanoidRootPart'].Position)
@@ -403,15 +419,24 @@ function esp:update()
                 end
             end;
 
-            -- chams
+            -- chams with fade
             drawing.chams.ins.Enabled = esp[ flag .. 'chams'][1] and pass
             drawing.chams.ins.Adornee = esp[ flag .. 'chams'][1] and player.Character or nil
             drawing.chams.ins.Parent = folder
             if drawing.chams.ins.Enabled then
                 drawing.chams.ins.FillColor = esp[ flag .. 'chams'][2]
                 drawing.chams.ins.OutlineColor = esp[ flag .. 'chams'][3]
-                drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4]
-                drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5]
+                
+                if esp.chamsfade then
+                    drawing.chams.fadeTime = drawing.chams.fadeTime + (runService.RenderStepped:Wait() * esp.chamsfadespeed)
+                    local fadeFactor = (SIN(drawing.chams.fadeTime) + 1) / 2
+                    drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4] + (fadeFactor * 0.3)
+                    drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5] + (fadeFactor * 0.2)
+                else
+                    drawing.chams.ins.FillTransparency = esp[ flag .. 'chams'][4]
+                    drawing.chams.ins.OutlineTransparency = esp[ flag .. 'chams'][5]
+                end
+                
                 drawing.chams.ins.DepthMode = esp[ flag .. 'chams'][6] and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
             end;
 
@@ -441,24 +466,102 @@ function esp:update()
                 if biggestY < pos.Y then biggestY = pos.Y end
             end
 
-            -- box
-            drawing.box.Visible = esp[ flag .. 'boxes'][1]
-            drawing.box_fill.Visible = drawing.box.Visible
-            drawing.box_outline.Visible = esp.outlines and drawing.box.Visible
-            if drawing.box.Visible then
-                drawing.box.Color = esp[ flag .. 'boxes'][2]
-                drawing.box.Size = esp:floorvector(NEWVEC2(biggestX - smallestX, biggestY - smallestY))
-                drawing.box.Position = esp:floorvector(NEWVEC2(smallestX, smallestY))
-                drawing.box.Transparency = transparency
-                --
-                drawing.box_fill.Size = drawing.box.Size
-                drawing.box_fill.Position = drawing.box.Position
-                drawing.box_fill.Color = esp[ flag .. 'boxes'][3]
-                drawing.box_fill.Transparency = MIN(esp[ flag .. 'boxes'][4], transparency)
-                --
-                drawing.box_outline.Size = drawing.box.Size
-                drawing.box_outline.Position = drawing.box.Position + NEWVEC2(1,1)
-                drawing.box_outline.Transparency = transparency
+            -- box (regular or corner)
+            if esp.cornerbox then
+                -- Hide regular box
+                drawing.box.Visible = false
+                drawing.box_fill.Visible = false
+                drawing.box_outline.Visible = false
+                
+                -- Show corner box
+                local cornerLength = MIN((biggestX - smallestX) / 4, (biggestY - smallestY) / 4)
+                local visible = esp[ flag .. 'boxes'][1]
+                
+                drawing.box_corner_tl1.Visible = visible
+                drawing.box_corner_tl2.Visible = visible
+                drawing.box_corner_tr1.Visible = visible
+                drawing.box_corner_tr2.Visible = visible
+                drawing.box_corner_bl1.Visible = visible
+                drawing.box_corner_bl2.Visible = visible
+                drawing.box_corner_br1.Visible = visible
+                drawing.box_corner_br2.Visible = visible
+                
+                if visible then
+                    local color = esp[ flag .. 'boxes'][2]
+                    -- Top left
+                    drawing.box_corner_tl1.From = esp:floorvector(NEWVEC2(smallestX, smallestY))
+                    drawing.box_corner_tl1.To = esp:floorvector(NEWVEC2(smallestX + cornerLength, smallestY))
+                    drawing.box_corner_tl1.Color = color
+                    drawing.box_corner_tl1.Transparency = transparency
+                    
+                    drawing.box_corner_tl2.From = esp:floorvector(NEWVEC2(smallestX, smallestY))
+                    drawing.box_corner_tl2.To = esp:floorvector(NEWVEC2(smallestX, smallestY + cornerLength))
+                    drawing.box_corner_tl2.Color = color
+                    drawing.box_corner_tl2.Transparency = transparency
+                    
+                    -- Top right
+                    drawing.box_corner_tr1.From = esp:floorvector(NEWVEC2(biggestX, smallestY))
+                    drawing.box_corner_tr1.To = esp:floorvector(NEWVEC2(biggestX - cornerLength, smallestY))
+                    drawing.box_corner_tr1.Color = color
+                    drawing.box_corner_tr1.Transparency = transparency
+                    
+                    drawing.box_corner_tr2.From = esp:floorvector(NEWVEC2(biggestX, smallestY))
+                    drawing.box_corner_tr2.To = esp:floorvector(NEWVEC2(biggestX, smallestY + cornerLength))
+                    drawing.box_corner_tr2.Color = color
+                    drawing.box_corner_tr2.Transparency = transparency
+                    
+                    -- Bottom left
+                    drawing.box_corner_bl1.From = esp:floorvector(NEWVEC2(smallestX, biggestY))
+                    drawing.box_corner_bl1.To = esp:floorvector(NEWVEC2(smallestX + cornerLength, biggestY))
+                    drawing.box_corner_bl1.Color = color
+                    drawing.box_corner_bl1.Transparency = transparency
+                    
+                    drawing.box_corner_bl2.From = esp:floorvector(NEWVEC2(smallestX, biggestY))
+                    drawing.box_corner_bl2.To = esp:floorvector(NEWVEC2(smallestX, biggestY - cornerLength))
+                    drawing.box_corner_bl2.Color = color
+                    drawing.box_corner_bl2.Transparency = transparency
+                    
+                    -- Bottom right
+                    drawing.box_corner_br1.From = esp:floorvector(NEWVEC2(biggestX, biggestY))
+                    drawing.box_corner_br1.To = esp:floorvector(NEWVEC2(biggestX - cornerLength, biggestY))
+                    drawing.box_corner_br1.Color = color
+                    drawing.box_corner_br1.Transparency = transparency
+                    
+                    drawing.box_corner_br2.From = esp:floorvector(NEWVEC2(biggestX, biggestY))
+                    drawing.box_corner_br2.To = esp:floorvector(NEWVEC2(biggestX, biggestY - cornerLength))
+                    drawing.box_corner_br2.Color = color
+                    drawing.box_corner_br2.Transparency = transparency
+                end
+            else
+                -- Hide corner box
+                drawing.box_corner_tl1.Visible = false
+                drawing.box_corner_tl2.Visible = false
+                drawing.box_corner_tr1.Visible = false
+                drawing.box_corner_tr2.Visible = false
+                drawing.box_corner_bl1.Visible = false
+                drawing.box_corner_bl2.Visible = false
+                drawing.box_corner_br1.Visible = false
+                drawing.box_corner_br2.Visible = false
+                
+                -- Show regular box
+                drawing.box.Visible = esp[ flag .. 'boxes'][1]
+                drawing.box_fill.Visible = drawing.box.Visible
+                drawing.box_outline.Visible = esp.outlines and drawing.box.Visible
+                if drawing.box.Visible then
+                    drawing.box.Color = esp[ flag .. 'boxes'][2]
+                    drawing.box.Size = esp:floorvector(NEWVEC2(biggestX - smallestX, biggestY - smallestY))
+                    drawing.box.Position = esp:floorvector(NEWVEC2(smallestX, smallestY))
+                    drawing.box.Transparency = transparency
+                    --
+                    drawing.box_fill.Size = drawing.box.Size
+                    drawing.box_fill.Position = drawing.box.Position
+                    drawing.box_fill.Color = esp[ flag .. 'boxes'][3]
+                    drawing.box_fill.Transparency = MIN(esp[ flag .. 'boxes'][4], transparency)
+                    --
+                    drawing.box_outline.Size = drawing.box.Size
+                    drawing.box_outline.Position = drawing.box.Position + NEWVEC2(1,1)
+                    drawing.box_outline.Transparency = transparency
+                end
             end
 
             -- healthbar
@@ -529,7 +632,7 @@ function esp:update()
                 drawing.name_outline.Transparency = transparency
             end
 
-            -- health
+            -- health text on bar
             drawing.health.Visible = health ~= 100 and health ~= 0  and esp[flag .. 'health']
             if drawing.health.Visible then
                 drawing.health.Text = tostring(health)
@@ -541,39 +644,51 @@ function esp:update()
                 drawing.health.Transparency = transparency
             end
 
+            -- health text next to box
+            drawing.healthtext.Visible = esp[flag .. 'health']
+            drawing.healthtext_outline.Visible = esp.outlines and drawing.healthtext.Visible
+            if drawing.healthtext.Visible then
+                drawing.healthtext.Text = tostring(health)
+                drawing.healthtext.Font = Drawing.Fonts[esp.font]
+                drawing.healthtext.Size = esp.textsize
+                drawing.healthtext.Color = esp[ flag .. 'healthbar'][3]:Lerp(esp[ flag .. 'healthbar'][2], health / 100)
+                drawing.healthtext.Position = esp:floorvector(NEWVEC2(biggestX + 4, smallestY + (biggestY - smallestY) / 2 - drawing.healthtext.TextBounds.Y / 2))
+                drawing.healthtext.Transparency = transparency
+                drawing.healthtext_outline.Text = drawing.healthtext.Text
+                drawing.healthtext_outline.Font = drawing.healthtext.Font
+                drawing.healthtext_outline.Size = drawing.healthtext.Size
+                drawing.healthtext_outline.Position = drawing.healthtext.Position + NEWVEC2(1,1)
+                drawing.healthtext_outline.Transparency = transparency
+            end
+
             -- weapon
--- weapon
-drawing.weapon.Visible = false
-drawing.weapon_outline.Visible = false
+            drawing.weapon.Visible = false
+            drawing.weapon_outline.Visible = false
 
-if esp[ flag .. 'weapon'][1] then
-    local weaponName = nil
-    for _, obj in pairs(character:GetDescendants()) do
-        if obj.Name:lower() == "bolt" then
-            weaponName = obj.Parent.Name:lower()
-            break
-        end
-    end
+            if esp[ flag .. 'weapon'][1] then
+                local weaponName = "none"
+                for _, obj in pairs(character:GetDescendants()) do
+                    if obj.Name:lower() == "bolt" then
+                        weaponName = obj.Parent.Name:lower()
+                        break
+                    end
+                end
 
-    if weaponName then
-        drawing.weapon.Text = weaponName
-        drawing.weapon.Font = Drawing.Fonts[esp.font]
-        drawing.weapon.Size = esp.textsize
-        drawing.weapon.Color = esp[ flag .. 'weapon'][2]
-        drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))
-        drawing.weapon.Transparency = transparency
-        drawing.weapon.Visible = true
+                drawing.weapon.Text = weaponName
+                drawing.weapon.Font = Drawing.Fonts[esp.font]
+                drawing.weapon.Size = esp.textsize
+                drawing.weapon.Color = esp[ flag .. 'weapon'][2]
+                drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))
+                drawing.weapon.Transparency = transparency
+                drawing.weapon.Visible = true
 
-        drawing.weapon_outline.Text = drawing.weapon.Text
-        drawing.weapon_outline.Font = drawing.weapon.Font
-        drawing.weapon_outline.Size = drawing.weapon.Size
-        drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
-        drawing.weapon_outline.Transparency = transparency
-        drawing.weapon_outline.Visible = true
-    end
-end
-
-
+                drawing.weapon_outline.Text = drawing.weapon.Text
+                drawing.weapon_outline.Font = drawing.weapon.Font
+                drawing.weapon_outline.Size = drawing.weapon.Size
+                drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
+                drawing.weapon_outline.Transparency = transparency
+                drawing.weapon_outline.Visible = esp.outlines
+            end
 
         else
             esp:disable(player)

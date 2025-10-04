@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.1 - Optimizedzz")
+warn("v0.1 - Optimizedz")
 local esp = {
     -- settings
     enabled = false,
@@ -840,7 +840,6 @@ end
             drawing.weapon_outline.Visible = esp.outlines
         end
     end
-end
 
 
 for i, plr in next, players:GetPlayers() do

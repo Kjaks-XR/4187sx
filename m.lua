@@ -155,7 +155,10 @@ end
 function esp.checkalive(plr)
     if not plr then plr = localPlayer end
     local character = plr.Character
-    if not character then return false end
+    if not character then 
+        print("Karakter bulunamadı:", plr.Name)
+        return false 
+    end
     
     local humanoid = character:FindFirstChildWhichIsA('Humanoid')
     local head = character:FindFirstChild('Head')
@@ -164,6 +167,7 @@ function esp.checkalive(plr)
     if humanoid and head and hrp and humanoid.Health > 0 then
         return true
     end
+    print("Karakter eksik bileşen:", plr.Name, "Humanoid:", humanoid, "Head:", head, "HRP:", hrp)
     return false
 end
 
@@ -804,23 +808,21 @@ function esp:update()
         drawing.weapon.Visible = false
         drawing.weapon_outline.Visible = false
 
-        if esp[flag .. 'weapon'][1] then
-            local weaponName = "none"
-            for _, obj in pairs(character:GetDescendants()) do
-                if obj.Name:lower() == "attachments" then
-                    local parent = obj.Parent
-                    if parent then
-                        if parent.Name:lower() == "itemroot" then
-                            if parent.Parent then
-                                weaponName = parent.Parent.Name:lower()
-                            end
-                        else
-                            weaponName = parent.Name:lower()
-                        end
-                    end
-                    break
-                end
+if esp[flag .. 'weapon'][1] then
+    local weaponName = "none"
+    for _, obj in pairs(character:GetDescendants()) do
+        if obj.Name:lower() == "ejectionport" then
+            local parent = obj.Parent
+            if parent and parent.Parent then
+                weaponName = parent.Parent.Name:lower()
+            elseif parent then
+                weaponName = parent.Name:lower()
             end
+            break
+        end
+    end
+end
+
 
             drawing.weapon.Text = weaponName
             drawing.weapon.Font = Drawing.Fonts[esp.font]
@@ -854,26 +856,22 @@ for i, plr in next, players:GetPlayers() do
     end
 end
 
-for i, plr in next, players:GetPlayers() do
-    if plr ~= localPlayer then
-        task.spawn(function()
-				
-            plr.CharacterAdded:Wait()
-				wait(0.03)
-            esp:add(plr)
-        end)
-    end
-end
-
 esp:connect(players.PlayerAdded, function(plr)
     if plr == localPlayer then return end
     plr.CharacterAdded:Connect(function(character)
-        task.wait(0.5) -- Gecikmeyi artır
-        if esp.getcharacter(plr) and esp.checkalive(plr) then
+        task.wait(0.05) -- Gecikme
+        if esp.checkalive(plr) then
             esp:add(plr)
             print("ESP eklendi:", plr.Name)
+        else
+            print("ESP eklenemedi, karakter hazır değil:", plr.Name)
         end
     end)
+    -- Mevcut karakteri kontrol et
+    if plr.Character and esp.checkalive(plr) then
+        esp:add(plr)
+        print("Mevcut karakter için ESP eklendi:", plr.Name)
+    end
 end)
 
 

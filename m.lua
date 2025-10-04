@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-
+warn("v0.3")
 local esp = {
     -- settings
     enabled = false,
@@ -542,10 +542,11 @@ function esp:update()
             end
 
             -- weapon
-drawing.weapon.Visible = esp[ flag .. 'weapon'][1]
-drawing.weapon_outline.Visible = esp.outlines and drawing.weapon.Visible
+-- weapon
+drawing.weapon.Visible = false
+drawing.weapon_outline.Visible = false
 
-if drawing.weapon.Visible then
+if esp[ flag .. 'weapon'][1] then
     local weaponName = nil
     for _, obj in pairs(character:GetDescendants()) do
         if obj.Name:lower() == "bolt" then
@@ -554,19 +555,24 @@ if drawing.weapon.Visible then
         end
     end
 
-    drawing.weapon.Text = weaponName or nil
-    drawing.weapon.Font = Drawing.Fonts[esp.font]
-    drawing.weapon.Size = esp.textsize
-    drawing.weapon.Color = esp[ flag .. 'weapon'][2]
-    drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))
-    drawing.weapon.Transparency = transparency
+    if weaponName then
+        drawing.weapon.Text = weaponName
+        drawing.weapon.Font = Drawing.Fonts[esp.font]
+        drawing.weapon.Size = esp.textsize
+        drawing.weapon.Color = esp[ flag .. 'weapon'][2]
+        drawing.weapon.Position = esp:floorvector(NEWVEC2(smallestX + (biggestX - smallestX) / 2 - (drawing.weapon.TextBounds.X / 2), biggestY + 4))
+        drawing.weapon.Transparency = transparency
+        drawing.weapon.Visible = true
 
-    drawing.weapon_outline.Text = drawing.weapon.Text
-    drawing.weapon_outline.Font = drawing.weapon.Font
-    drawing.weapon_outline.Size = drawing.weapon.Size
-    drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
-    drawing.weapon_outline.Transparency = transparency
+        drawing.weapon_outline.Text = drawing.weapon.Text
+        drawing.weapon_outline.Font = drawing.weapon.Font
+        drawing.weapon_outline.Size = drawing.weapon.Size
+        drawing.weapon_outline.Position = drawing.weapon.Position + NEWVEC2(1,1)
+        drawing.weapon_outline.Transparency = transparency
+        drawing.weapon_outline.Visible = true
+    end
 end
+
 
 
         else

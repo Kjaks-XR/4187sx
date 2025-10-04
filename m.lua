@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.1 - Optimizedz")
+warn("v0.1 - Optimizedzz")
 local esp = {
     -- settings
     enabled = false,

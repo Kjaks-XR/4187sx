@@ -808,20 +808,14 @@ function esp:update()
         drawing.weapon.Visible = false
         drawing.weapon_outline.Visible = false
 
-if esp[flag .. 'weapon'][1] then
-    local weaponName = "none"
-    for _, obj in pairs(character:GetDescendants()) do
-        if obj.Name:lower() == "ejectionport" then
-            local parent = obj.Parent
-            if parent and parent.Parent then
-                weaponName = parent.Parent.Name:lower()
-            elseif parent then
-                weaponName = parent.Name:lower()
+        if esp[flag .. 'weapon'][1] then
+            local weaponName = "none"
+            for _, obj in pairs(character:GetDescendants()) do
+                if obj.Name:lower() == "itemroot" then
+                    weaponName = obj.Parent.Name:lower()
+                    break
+                end
             end
-            break
-        end
-    end
-end
 
 
             drawing.weapon.Text = weaponName

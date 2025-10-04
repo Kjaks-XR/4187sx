@@ -4,7 +4,7 @@ local coregui = game:GetService('CoreGui')
 local players = game:GetService('Players')
 local localPlayer = players.LocalPlayer
 local camera = workspace.CurrentCamera
-warn("v0.1 - Optimized - ")
+warn("v0.1 - Optimizedz")
 local esp = {
     -- settings
     enabled = false,
@@ -157,7 +157,7 @@ function esp.checkalive(plr)
     local character = plr.Character
     if not character then return false end
     
-    local humanoid = character:FindFirstChild('Humanoid')
+    local humanoid = character:FindFirstChildWhichIsA('Humanoid')
     local head = character:FindFirstChild('Head')
     local hrp = character:FindFirstChild('HumanoidRootPart')
     
@@ -840,19 +840,40 @@ function esp:update()
     end
 end
 
+
 for i, plr in next, players:GetPlayers() do
     if plr ~= localPlayer then
         task.spawn(function()
+            local character = plr.Character or plr.CharacterAdded:Wait()
+            task.wait(0.5)
+            if esp.checkalive(plr) then
+                esp:add(plr)
+                print("Başlangıçta ESP eklendi:", plr.Name)
+            end
+        end)
+    end
+end
+
+for i, plr in next, players:GetPlayers() do
+    if plr ~= localPlayer then
+        task.spawn(function()
+				
             plr.CharacterAdded:Wait()
+				wait(0.03)
             esp:add(plr)
         end)
     end
 end
 
 esp:connect(players.PlayerAdded, function(plr)
-    plr.CharacterAdded:Wait() -- Karakterin yüklenmesini bekle
-    task.wait(0.5) -- Ekstra güvenlik için küçük bir gecikme
-    esp:add(plr)
+    if plr == localPlayer then return end
+    plr.CharacterAdded:Connect(function(character)
+        task.wait(0.5) -- Gecikmeyi artır
+        if esp.getcharacter(plr) and esp.checkalive(plr) then
+            esp:add(plr)
+            print("ESP eklendi:", plr.Name)
+        end
+    end)
 end)
 
 
